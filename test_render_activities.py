@@ -46,6 +46,14 @@ ANALYSIS_SPIDER = {
     "child_name": None,
 }
 
+ANALYSIS_ENGLISH = {
+    "subject": "Английский язык",
+    "grade": 2,
+    "topics": [{"subject": "Английский язык", "topic": "Animals"}],
+    "theme": "Pokemon",
+    "child_name": "Миша",
+}
+
 # ── CIPHER ──────────────────────────────────────────────────────────────────
 
 CIPHER_MATH_DATA = {
@@ -176,6 +184,26 @@ MAZE_DATA = {
     "correct_path": [0, 1, 8, 15, 16, 23, 24, 25, 32, 39, 40, 41, 47, 48],
 }
 
+CIPHER_ENGLISH_DATA = {
+    "title": "Pokemon Secret Code",
+    "story": "Professor Oak has hidden a secret Pokemon name! Translate the words to English and take the first letter of each to discover which Pokemon it is!",
+    "cipher_mode": "tasks",
+    "instruction": "Переведи слово на английский. Первая буква перевода — это буква секретного слова!",
+    "cipher_key": {},
+    "encoded_lines": [],
+    "cipher_tasks": [
+        {"question": "Переведи: Свинья", "answer": "P", "options": []},
+        {"question": "Переведи: Лёд", "answer": "I", "options": []},
+        {"question": "Переведи: Король", "answer": "K", "options": []},
+        {"question": "Переведи: Яблоко", "answer": "A", "options": []},
+        {"question": "Переведи: Вишня", "answer": "C", "options": []},
+        {"question": "Переведи: Дом", "answer": "H", "options": []},
+        {"question": "Переведи: Зонт", "answer": "U", "options": []},
+    ],
+    "secret_word": "PIKACHU",
+    "fun_answer_hint": "That's right! Pikachu is the most famous Pokemon!",
+}
+
 # ── RENDER ──────────────────────────────────────────────────────────────────
 
 def render_all():
@@ -183,6 +211,7 @@ def render_all():
         ("cipher_math", "cipher", ANALYSIS_HP, CIPHER_MATH_DATA),
         ("cipher_russian", "cipher", ANALYSIS_HP, CIPHER_RUSSIAN_DATA),
         ("cipher_ortho", "cipher", ANALYSIS_HP, CIPHER_ORTHO_DATA),
+        ("cipher_english", "cipher", ANALYSIS_ENGLISH, CIPHER_ENGLISH_DATA),
         ("cafe", "cafe", ANALYSIS_MC, CAFE_DATA),
         ("shop", "shop", ANALYSIS_FROZEN, SHOP_DATA),
     ]
@@ -200,7 +229,7 @@ def render_all():
         print(f"[OK] test_activity_{test_name}.html")
 
     # Open in browser
-    for name in ["cipher_math", "cipher_russian", "cipher_ortho", "cafe", "shop"]:
+    for name in ["cipher_math", "cipher_russian", "cipher_ortho", "cipher_english", "cafe", "shop"]:
         p = Path(__file__).parent / f"test_activity_{name}.html"
         if p.exists():
             webbrowser.open(str(p))
