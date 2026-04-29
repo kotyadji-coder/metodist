@@ -38,15 +38,20 @@ logger = logging.getLogger("metodist")
 
 _UNSAFE_KEYWORDS = re.compile(
     r"\b("
-    r"оружи[ея]|пистолет|нож|ножи|меч|мечи|ружь[её]|автомат|пулемёт|граната|бомб[аы]|взрывчатк[аи]|топор"
-    r"|gun|pistol|rifle|sword|knife|bomb|grenade|weapon|cannon|axe"
-    r"|насили[ея]|убийств[ао]|убийц[аы]|драк[аи]|убить|убивать|кров[иь]|ран[еёи]ни[ея]|смерт[иь]|мёртв"
+    # real weapons (NOT fantasy: swords, lightsabers etc are OK)
+    r"пистолет|ружь[её]|автомат|пулемёт|граната|бомб[аы]|взрывчатк[аи]"
+    r"|gun|pistol|rifle|bomb|grenade|cannon"
+    # violence
+    r"|насили[ея]|убийств[ао]|убийц[аы]|убить|убивать|кров[иь]|смерт[иь]|мёртв"
     r"|violence|murder|kill|killing|blood|death|dead|dying|gore"
-    r"|ужас|монстр|призрак|череп|скелет|демон|дьявол|зомби"
-    r"|horror|monster|ghost|skull|skeleton|demon|devil|zombie"
+    # horror
+    r"|демон|дьявол"
+    r"|demon|devil"
+    # adult
     r"|секс|порно|голый|голая|нагой"
     r"|sex|porn|nude|naked"
-    r"|алкоголь|пиво|водк[аи]|вин[оа]|наркотик|куритель|сигарет"
+    # substances
+    r"|алкоголь|пиво|водк[аи]|наркотик|куритель|сигарет"
     r"|alcohol|beer|vodka|drug|drugs|smoking|cigarette"
     r")\b",
     re.IGNORECASE,
