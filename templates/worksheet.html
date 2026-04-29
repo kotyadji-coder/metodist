@@ -887,9 +887,22 @@
         document.getElementById('printBtnBar').style.display = 'flex';
     }
 
+    // Mobile: scale page to fit screen width
+    var vw = window.innerWidth;
+    var c = document.querySelector('.container');
+    if (vw < 800 && c) {
+        var pageW = c.scrollWidth;
+        var scale = (vw - 16) / pageW;
+        if (scale < 1) {
+            c.style.transformOrigin = 'top left';
+            c.style.transform = 'scale(' + scale + ')';
+            c.style.width = (100 / scale) + '%';
+            return;
+        }
+    }
+
     // Auto-fit A4: distribute space then scale if needed
     var A4H = 1047; // 277mm at 96dpi
-    var c = document.querySelector('.container');
     var grid = document.querySelector('.tasks-grid');
     if (!c || !grid) return;
 

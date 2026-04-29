@@ -110,10 +110,24 @@
 (function () {
     document.getElementById('printBtnBar').style.display = 'flex';
 
-    // Auto-fit A4
-    var A4H = 1047;
     var p = document.getElementById('page');
     if (!p) return;
+
+    // Mobile: scale page to fit screen width
+    var vw = window.innerWidth;
+    if (vw < 800) {
+        var pageW = p.scrollWidth;
+        var scale = (vw - 16) / pageW;
+        if (scale < 1) {
+            p.style.transformOrigin = 'top left';
+            p.style.transform = 'scale(' + scale + ')';
+            p.style.width = (100 / scale) + '%';
+            return;
+        }
+    }
+
+    // Desktop: auto-fit A4 height
+    var A4H = 1047;
     var h = p.scrollHeight;
     if (Math.abs(h - A4H) > 20) {
         var scale = A4H / h;
