@@ -391,6 +391,11 @@ async def admin_stats(password: str = Query(...)):
   </div>
   &nbsp;
   <div class="card">
+    <div class="green val">{stats["activities_today"]}</div>
+    <div>Активностей</div>
+  </div>
+  &nbsp;
+  <div class="card">
     <div class="red val">{stats["errors_today"]}</div>
     <div>Ошибок</div>
   </div>

@@ -51,6 +51,10 @@ def get_stats_today() -> dict:
         "SELECT COUNT(*) FROM logs WHERE action = 'WORKSHEET_DONE' AND timestamp LIKE ?",
         (f"{today}%",),
     ).fetchone()[0]
+    activities = conn.execute(
+        "SELECT COUNT(*) FROM logs WHERE action = 'ACT_DONE' AND timestamp LIKE ?",
+        (f"{today}%",),
+    ).fetchone()[0]
     errors = conn.execute(
         "SELECT COUNT(*) FROM logs WHERE level = 'ERROR' AND timestamp LIKE ?",
         (f"{today}%",),
@@ -60,6 +64,7 @@ def get_stats_today() -> dict:
     ).fetchone()
     return {
         "worksheets_today": worksheets,
+        "activities_today": activities,
         "errors_today": errors,
         "last_error": dict(last_error) if last_error else None,
     }
