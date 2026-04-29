@@ -1,0 +1,10 @@
+.env
+google-credentials.json
+__pycache__/
+*.pyc
+content/
+logs.db
+.venv/
+test_*.html
+test_*.png
+test_*.svg

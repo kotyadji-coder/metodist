@@ -1,0 +1,47 @@
+{% extends "activities/base.html" %}
+
+{% block extra_css %}
+        :root { --accent: #2563eb; --story-bg: #eff6ff; --story-border: #60a5fa; }
+        .act-story { color: #1e40af; }
+
+        .chain-section { margin-bottom: 14px; }
+        .chain-row { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin-bottom: 10px; }
+
+        .chain-step { display: flex; align-items: center; gap: 0; }
+
+        .chain-op {
+            font-size: 12pt; font-weight: 800; color: #2563eb;
+            padding: 0 6px;
+            min-width: 36px; text-align: center;
+        }
+        .chain-val {
+            width: 44px; height: 38px;
+            border: 2px solid #374151; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14pt; font-weight: 900;
+        }
+        .chain-val--filled { background: #eff6ff; color: #1e40af; }
+        .chain-val--empty { border-style: dashed; background: #f9fafb; }
+
+        .chain-arrow { color: #60a5fa; font-size: 16pt; margin: 0 2px; }
+{% endblock %}
+
+{% block content %}
+    <p style="font-size:12pt;font-weight:700;margin-bottom:12px;">{{ instruction }}</p>
+
+    <div class="chain-section">
+        {% for chain in chains %}
+        <div class="chain-row">
+            {% for step in chain %}
+            <div class="chain-step">
+                {% if step.operation %}
+                <span class="chain-op">{{ step.operation }}</span>
+                {% endif %}
+                <div class="chain-val {% if step.value %}chain-val--filled{% else %}chain-val--empty{% endif %}">{{ step.value }}</div>
+            </div>
+            {% if not loop.last %}<span class="chain-arrow">→</span>{% endif %}
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}

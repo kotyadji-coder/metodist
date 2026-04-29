@@ -1,0 +1,58 @@
+{% extends "activities/base.html" %}
+
+{% block extra_css %}
+        :root { --accent: #dc2626; --story-bg: #fef2f2; --story-border: #fca5a5; }
+        .act-story { color: #991b1b; }
+
+        .cbv-legend {
+            display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+            margin-bottom: 14px; padding: 8px 14px;
+            background: #fafafa; border: 2px solid #e5e7eb; border-radius: 10px;
+        }
+        .cbv-legend-item {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 12pt; font-weight: 700;
+        }
+        .cbv-legend-swatch {
+            width: 20px; height: 20px; border-radius: 4px;
+            border: 2px solid #374151;
+        }
+
+        .cbv-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+        .cbv-zone {
+            border: 2px solid #374151;
+            border-radius: 8px;
+            padding: 10px 6px;
+            text-align: center;
+            font-size: 13pt;
+            font-weight: 800;
+            background: #fff;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+{% endblock %}
+
+{% block content %}
+    <p style="font-size:12pt;font-weight:700;margin-bottom:8px;">{{ instruction }}</p>
+
+    <div class="cbv-legend">
+        {% for answer, color in legend.items() %}
+        <div class="cbv-legend-item">
+            <span>{{ answer }} =</span>
+            <span style="font-weight:900;">{{ color }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="cbv-grid">
+        {% for zone in zones %}
+        <div class="cbv-zone">{{ zone.label }}</div>
+        {% endfor %}
+    </div>
+{% endblock %}
