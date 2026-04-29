@@ -76,7 +76,8 @@ CIPHER_RUSSIAN_DATA = {
     "title": "Заклинание грамотности",
     "story": "Гермиона нашла древний свиток с заклинанием! Но буквы зашифрованы — нужно решить задания по русскому языку, чтобы расшифровать магическое слово!",
     "cipher_mode": "tasks",
-    "instruction": "Реши каждое задание. Найди ответ в ключе шифра — это буква секретного слова!",
+    "instruction": "Посчитай и найди ответ в ключе шифра!",
+    "cipher_reference": [],
     "cipher_key": {
         "3": "З", "2": "В", "5": "Е", "4": "З", "1": "Д", "6": "А",
     },
@@ -91,6 +92,28 @@ CIPHER_RUSSIAN_DATA = {
     ],
     "secret_word": "ЗВЕЗДА",
     "fun_answer_hint": "Ты — настоящий волшебник! А теперь раздели все слова из заданий на слоги.",
+}
+
+CIPHER_GRAMMAR_DATA = {
+    "title": "Грамматическое заклинание",
+    "story": "Профессор МакГонагалл зашифровала оценку за контрольную! Определи части речи, чтобы узнать секретное слово!",
+    "cipher_mode": "tasks",
+    "instruction": "Определи часть речи слова. Найди номер в справке, затем в ключе шифра!",
+    "cipher_reference": ["Сущ. = 1", "Прил. = 2", "Глагол = 3"],
+    "cipher_key": {
+        "3": "О", "1": "М", "2": "Л",
+        "4": "Ш",
+    },
+    "encoded_lines": [],
+    "cipher_tasks": [
+        {"question": "Определи часть речи: МЕТЛА", "answer": "1", "options": []},
+        {"question": "Определи часть речи: ВОЛШЕБНЫЙ", "answer": "2", "options": []},
+        {"question": "Определи часть речи: ЛЕТАТЬ", "answer": "3", "options": []},
+        {"question": "Определи часть речи: ЗЕЛЬЕ", "answer": "1", "options": []},
+        {"question": "Определи часть речи: КОЛДОВАТЬ", "answer": "3", "options": []},
+    ],
+    "secret_word": "МОЛОК",
+    "fun_answer_hint": "Ты — настоящий грамматический волшебник!",
 }
 
 CIPHER_ORTHO_DATA = {
@@ -210,6 +233,7 @@ def render_all():
     test_sets = [
         ("cipher_math", "cipher", ANALYSIS_HP, CIPHER_MATH_DATA),
         ("cipher_russian", "cipher", ANALYSIS_HP, CIPHER_RUSSIAN_DATA),
+        ("cipher_grammar", "cipher", ANALYSIS_HP, CIPHER_GRAMMAR_DATA),
         ("cipher_ortho", "cipher", ANALYSIS_HP, CIPHER_ORTHO_DATA),
         ("cipher_english", "cipher", ANALYSIS_ENGLISH, CIPHER_ENGLISH_DATA),
         ("cafe", "cafe", ANALYSIS_MC, CAFE_DATA),
@@ -229,7 +253,7 @@ def render_all():
         print(f"[OK] test_activity_{test_name}.html")
 
     # Open in browser
-    for name in ["cipher_math", "cipher_russian", "cipher_ortho", "cipher_english", "cafe", "shop"]:
+    for name in ["cipher_math", "cipher_russian", "cipher_grammar", "cipher_ortho", "cipher_english", "cafe", "shop"]:
         p = Path(__file__).parent / f"test_activity_{name}.html"
         if p.exists():
             webbrowser.open(str(p))

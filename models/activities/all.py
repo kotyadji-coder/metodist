@@ -39,6 +39,10 @@ class CipherActivity(ActivityBase):
         description="List of questions. Each answer maps via cipher_key to a letter of the secret word."
     )
     secret_word: str = Field(default="", description="The decoded secret word/phrase")
+    cipher_reference: list[str] = Field(
+        default=[],
+        description="Reference legend lines for type В. E.g. ['Сущ. = 1', 'Прил. = 2', 'Глагол = 3']. Each line = one mapping."
+    )
     fun_answer_hint: str = Field(description="Funny hint or bonus task after decoding")
 
 

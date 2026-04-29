@@ -90,6 +90,26 @@
             min-height: 20px;
         }
 
+        /* ── REFERENCE CARD ── */
+        .cipher-reference {
+            display: flex; flex-wrap: wrap; gap: 6px 14px;
+            padding: 10px 16px;
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            margin-bottom: 14px;
+        }
+        .cipher-reference-title {
+            width: 100%;
+            font-size: 11pt; font-weight: 800; color: #92400e;
+            margin-bottom: 2px;
+        }
+        .cipher-reference-item {
+            font-size: 11pt; font-weight: 700; color: #78350f;
+            background: #fef9c3; padding: 2px 10px; border-radius: 6px;
+            border: 1px solid #fbbf24;
+        }
+
         /* ── TASK MODE: 2-col layout ── */
         .cipher-task-layout {
             display: flex; gap: 20px; align-items: flex-start;
@@ -177,6 +197,15 @@
             <div class="cipher-arrow">=</div>
             <div class="cipher-letter">{{ letter }}</div>
         </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if cipher_reference %}
+    <div class="cipher-reference">
+        <div class="cipher-reference-title">Справка:</div>
+        {% for item in cipher_reference %}
+        <span class="cipher-reference-item">{{ item }}</span>
         {% endfor %}
     </div>
     {% endif %}
