@@ -47,16 +47,9 @@
             border-radius: 14px;
             display: flex; align-items: flex-start; gap: 16px;
         }
-        .cafe-budget-coin {
+        .cafe-budget-icon {
             flex-shrink: 0;
-            width: 72px; height: 72px;
-            background: linear-gradient(145deg, #fbbf24, #f59e0b);
-            border-radius: 50%;
-            border: 3px solid #d97706;
-            display: flex; align-items: center; justify-content: center;
-            flex-direction: column;
-            font-size: 22pt; font-weight: 900; color: #fff;
-            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);
+            font-size: 40pt;
             line-height: 1;
         }
         .cafe-budget-body { flex: 1; }
@@ -91,7 +84,7 @@
     </div>
 
     <div class="cafe-budget">
-        <div class="cafe-budget-coin">{{ budget_amount }}<span style="font-size:9pt;display:block;line-height:1;margin-top:2px;">монет</span></div>
+        <div class="cafe-budget-icon">💰</div>
         <div class="cafe-budget-body">
             <div class="cafe-budget-title">{{ budget_task }}</div>
             <div class="answer-line"></div>
