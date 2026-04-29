@@ -121,10 +121,16 @@ def analyze_worksheet_request(question: str) -> dict:
     return _call_and_validate(prompt, model_class=WorksheetAnalysis)
 
 
+def _strip_personal_data(analysis: dict) -> dict:
+    """Remove child_name before sending to external AI."""
+    safe = {k: v for k, v in analysis.items() if k != "child_name"}
+    return safe
+
+
 def generate_worksheet_tasks(analysis: dict) -> dict:
     """Step 2: Generate 4 tasks based on analysis."""
     prompt = WORKSHEET_TASKS_PROMPT.format(
-        analysis_json=json.dumps(analysis, ensure_ascii=False),
+        analysis_json=json.dumps(_strip_personal_data(analysis), ensure_ascii=False),
     )
     return _call_and_validate(prompt, model_class=WorksheetTasks)
 
@@ -141,7 +147,7 @@ def generate_activity(activity_type: str, analysis: dict) -> dict:
     """Generate full-page activity data."""
     prompt = ACTIVITY_PROMPT.format(
         activity_type=activity_type,
-        analysis_json=json.dumps(analysis, ensure_ascii=False),
+        analysis_json=json.dumps(_strip_personal_data(analysis), ensure_ascii=False),
     )
     model_class = ACTIVITY_MODEL_MAP.get(activity_type)
     return _call_and_validate(prompt, model_class=model_class)
