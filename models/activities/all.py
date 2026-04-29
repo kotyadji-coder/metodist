@@ -13,17 +13,33 @@ class ActivityBase(BaseModel):
 
 # ── 1. CIPHER ───────────────────────────────────────────────────────────────
 
+class CipherTaskItem(BaseModel):
+    question: str = Field(description="Task question, e.g. 'Сколько слогов в слове СОБАКА?' or 'Вставь букву: М_РОЗ'")
+    answer: str = Field(description="Correct answer (number or letter)")
+    options: list[str] = Field(default=[], description="For variant 1 only: ['А → К', 'О → С'] showing which choice gives which cipher letter")
+
 class CipherActivity(ActivityBase):
     type: Literal["cipher"] = "cipher"
+    cipher_mode: str = Field(
+        default="expressions",
+        description="'expressions' for math, 'tasks' for Russian/other subjects"
+    )
     instruction: str = Field(description="Short instruction for the child")
     cipher_key: dict[str, str] = Field(
-        description="Mapping: number/symbol -> letter. E.g. {'1': 'П', '2': 'Р', ...}"
+        description="Mapping: answer -> letter. E.g. {'5': 'П', '8': 'Р', ...}"
     )
+    # For math mode (cipher_mode="expressions"):
     encoded_lines: list[str] = Field(
-        min_length=2, max_length=4,
-        description="Encoded phrases using the cipher key numbers/symbols. E.g. ['1 2 3 4 5 6', '7 8 9 10']"
+        default=[],
+        description="Encoded phrases with math expressions. E.g. ['2+3 4+4 1+2', '6+6 3+4 5+5']"
     )
-    fun_answer_hint: str = Field(description="Funny hint about the decoded message")
+    # For task mode (cipher_mode="tasks"):
+    cipher_tasks: list[CipherTaskItem] = Field(
+        default=[],
+        description="List of questions. Each answer maps via cipher_key to a letter of the secret word."
+    )
+    secret_word: str = Field(default="", description="The decoded secret word/phrase")
+    fun_answer_hint: str = Field(description="Funny hint or bonus task after decoding")
 
 
 # ── 2. CAFE ─────────────────────────────────────────────────────────────────

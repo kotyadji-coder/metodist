@@ -48,20 +48,60 @@ ANALYSIS_SPIDER = {
 
 # ── CIPHER ──────────────────────────────────────────────────────────────────
 
-CIPHER_DATA = {
+CIPHER_MATH_DATA = {
     "title": "Тайное послание Дамблдора",
     "story": "Ты нашёл зашифрованную записку в библиотеке Хогвартса! Профессор Дамблдор спрятал секретное послание. Расшифруй его, пока Филч не нашёл тебя!",
+    "cipher_mode": "expressions",
     "instruction": "Реши пример в каждой клетке, найди ответ в ключе и запиши букву!",
     "cipher_key": {
         "5": "М", "8": "А", "3": "Г", "12": "И", "7": "Я",
-        "10": "В", "15": "С", "6": "Е", "9": "Р", "4": "Д",
-        "11": "Ц", "14": "П", "2": "О",
     },
     "encoded_lines": [
-        "2+3 4+4 1+2 6+6 3+4  5+5  8+7 3+3 4+5 2+2 5+6 3+3",
-        "7+7 1+1 2+3 1+1 1+2 4+4 3+3 5+5  2+2 1+1 4+5 1+1 1+2 3+3",
+        "2+3 4+4 1+2 6+6 3+4",
     ],
+    "cipher_tasks": [],
+    "secret_word": "",
     "fun_answer_hint": "Подсказка: именно это делает тебя волшебником!",
+}
+
+CIPHER_RUSSIAN_DATA = {
+    "title": "Заклинание грамотности",
+    "story": "Гермиона нашла древний свиток с заклинанием! Но буквы зашифрованы — нужно решить задания по русскому языку, чтобы расшифровать магическое слово!",
+    "cipher_mode": "tasks",
+    "instruction": "Реши каждое задание. Найди ответ в ключе шифра — это буква секретного слова!",
+    "cipher_key": {
+        "3": "З", "2": "В", "5": "Е", "4": "З", "1": "Д", "6": "А",
+    },
+    "encoded_lines": [],
+    "cipher_tasks": [
+        {"question": "Сколько слогов в слове МОЛОКО?", "answer": "3", "options": []},
+        {"question": "Сколько гласных в слове ЁЖИК?", "answer": "2", "options": []},
+        {"question": "Сколько звуков в слове ЯМА?", "answer": "4", "options": []},
+        {"question": "Сколько согласных в слове СТРОКА?", "answer": "4", "options": []},
+        {"question": "Сколько букв в слове КОНЬ?", "answer": "4", "options": []},
+        {"question": "Сколько слогов в слове КАРАНДАШ?", "answer": "3", "options": []},
+    ],
+    "secret_word": "ЗВЕЗДА",
+    "fun_answer_hint": "Ты — настоящий волшебник! А теперь раздели все слова из заданий на слоги.",
+}
+
+CIPHER_ORTHO_DATA = {
+    "title": "Орфографическое зелье",
+    "story": "Профессор Снейп спрятал рецепт волшебного зелья! Чтобы его прочитать, вставь пропущенные буквы — каждая правильная буква откроет часть рецепта!",
+    "cipher_mode": "tasks",
+    "instruction": "Вставь пропущенную букву. Найди её в ключе шифра — узнаешь букву секретного слова!",
+    "cipher_key": {
+        "И": "С", "А": "О", "У": "В", "О": "А",
+    },
+    "encoded_lines": [],
+    "cipher_tasks": [
+        {"question": "Вставь букву: Ж_РАФФ", "answer": "И", "options": []},
+        {"question": "Вставь букву: Ч_ШКА", "answer": "А", "options": []},
+        {"question": "Вставь букву: Щ_КА", "answer": "У", "options": []},
+        {"question": "Вставь букву: М_РОЗ", "answer": "О", "options": []},
+    ],
+    "secret_word": "СОВА",
+    "fun_answer_hint": "Сова — символ мудрости Хогвартса! Вспомни правило ЖИ-ШИ пиши с И.",
 }
 
 # ── CAFE ────────────────────────────────────────────────────────────────────
@@ -140,25 +180,27 @@ MAZE_DATA = {
 
 def render_all():
     test_sets = [
-        ("cipher", ANALYSIS_HP, CIPHER_DATA),
-        ("cafe", ANALYSIS_MC, CAFE_DATA),
-        ("shop", ANALYSIS_FROZEN, SHOP_DATA),
+        ("cipher_math", "cipher", ANALYSIS_HP, CIPHER_MATH_DATA),
+        ("cipher_russian", "cipher", ANALYSIS_HP, CIPHER_RUSSIAN_DATA),
+        ("cipher_ortho", "cipher", ANALYSIS_HP, CIPHER_ORTHO_DATA),
+        ("cafe", "cafe", ANALYSIS_MC, CAFE_DATA),
+        ("shop", "shop", ANALYSIS_FROZEN, SHOP_DATA),
     ]
 
-    for name, analysis, data in test_sets:
+    for test_name, activity_type, analysis, data in test_sets:
         content_id = save_activity(
-            activity_type=name,
+            activity_type=activity_type,
             analysis=analysis,
             activity_data=data,
             server_url="http://localhost:8002",
         )
         src = CONTENT_DIR / f"{content_id}.html"
-        dst = Path(__file__).parent / f"test_activity_{name}.html"
+        dst = Path(__file__).parent / f"test_activity_{test_name}.html"
         dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
-        print(f"[OK] test_activity_{name}.html")
+        print(f"[OK] test_activity_{test_name}.html")
 
     # Open in browser
-    for name in ["cipher", "cafe", "shop"]:
+    for name in ["cipher_math", "cipher_russian", "cipher_ortho", "cafe", "shop"]:
         p = Path(__file__).parent / f"test_activity_{name}.html"
         if p.exists():
             webbrowser.open(str(p))

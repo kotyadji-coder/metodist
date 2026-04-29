@@ -4,27 +4,20 @@
         :root { --accent: #7c3aed; --story-bg: #f5f3ff; --story-border: #a78bfa; }
         .act-story { color: #5b21b6; }
 
-        /* ── TOP ROW: key + image side by side ── */
-        .cipher-top {
-            display: flex; gap: 20px; align-items: stretch;
-            margin-bottom: 16px;
-        }
-        .cipher-key-col { flex: 1; display: flex; flex-direction: column; }
-        .cipher-image-col { flex: 1; display: flex; flex-direction: column; }
-
         .cipher-section-label {
             font-size: 12pt; font-weight: 800; color: #111827;
             margin-bottom: 8px;
         }
 
+        /* ── KEY TABLE ── */
         .cipher-key {
-            flex: 1;
             display: flex; flex-wrap: wrap; gap: 6px;
             justify-content: center; align-content: center;
-            padding: 12px 14px;
+            padding: 10px 14px;
             background: #f5f3ff;
             border: 2px solid #c4b5fd;
             border-radius: 10px;
+            margin-bottom: 14px;
         }
         .cipher-pair {
             display: flex; flex-direction: column; align-items: center;
@@ -42,8 +35,8 @@
         }
         .cipher-arrow { color: #c4b5fd; font-size: 10pt; }
 
+        /* ── IMAGE ── */
         .cipher-image-wrap {
-            flex: 1;
             border: 2px solid #c4b5fd; border-radius: 10px;
             overflow: hidden;
             display: flex; align-items: center; justify-content: center;
@@ -57,14 +50,21 @@
             text-align: center; padding: 20px;
         }
 
-        /* ── BOTTOM: encoded message full width ── */
+        /* ── MATH MODE: expression grid ── */
+        .cipher-math-top {
+            display: flex; gap: 20px; align-items: stretch;
+            margin-bottom: 14px;
+        }
+        .cipher-math-top .cipher-key-col { flex: 1; display: flex; flex-direction: column; }
+        .cipher-math-top .cipher-image-col { flex: 1; display: flex; flex-direction: column; }
+        .cipher-math-top .cipher-image-wrap { flex: 1; }
+
         .cipher-decode {
             padding: 14px 18px;
             background: #faf8ff;
             border: 2px solid #c4b5fd;
             border-radius: 10px;
         }
-
         .encoded-line {
             display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
             margin-bottom: 8px;
@@ -90,6 +90,74 @@
             min-height: 20px;
         }
 
+        /* ── TASK MODE: 2-col layout ── */
+        .cipher-task-layout {
+            display: flex; gap: 20px; align-items: flex-start;
+        }
+        .cipher-task-left { flex: 1; }
+        .cipher-task-right { flex: 0 0 280px; display: flex; flex-direction: column; gap: 12px; }
+        .cipher-task-right .cipher-image-wrap { min-height: 200px; }
+
+        .cipher-tasks { }
+        .cipher-task-item {
+            display: flex; align-items: flex-start; gap: 8px;
+            margin-bottom: 8px;
+        }
+        .cipher-task-num {
+            display: inline-flex; width: 22px; height: 22px;
+            background: #7c3aed; color: #fff; border-radius: 50%;
+            align-items: center; justify-content: center;
+            font-size: 10pt; font-weight: 900; flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .cipher-task-body { flex: 1; }
+        .cipher-task-question {
+            font-size: 11pt; font-weight: 700; color: #1f2937;
+        }
+        .cipher-task-options {
+            display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px;
+        }
+        .cipher-task-option {
+            font-size: 10pt; font-weight: 600; color: #5b21b6;
+            background: #ede9fe; padding: 1px 8px; border-radius: 5px;
+        }
+        .cipher-task-answer {
+            display: inline-flex; align-items: center; gap: 4px;
+            margin-top: 3px;
+        }
+        .cipher-task-answer-label {
+            font-size: 9pt; font-weight: 700; color: #7c3aed;
+        }
+        .cipher-task-answer-box {
+            width: 28px; height: 24px;
+            border: 2px solid #7c3aed; border-radius: 4px;
+            background: #fff;
+        }
+        .cipher-task-letter-box {
+            width: 28px; height: 24px;
+            border: 2px dashed #c4b5fd; border-radius: 4px;
+            background: #fff;
+        }
+
+        /* ── SECRET WORD ── */
+        .cipher-secret {
+            margin-top: 12px; padding: 10px 16px;
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+            border: 2px solid #a78bfa;
+            border-radius: 10px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .cipher-secret-label {
+            font-size: 12pt; font-weight: 800; color: #5b21b6;
+        }
+        .cipher-secret-boxes { display: flex; gap: 4px; }
+        .cipher-secret-box {
+            width: 34px; height: 38px;
+            border: 2px solid #7c3aed;
+            border-radius: 5px;
+            background: #fff;
+        }
+
         .cipher-hint {
             margin-top: 10px; font-size: 11pt; font-style: italic;
             color: #6b7280;
@@ -97,10 +165,78 @@
 {% endblock %}
 
 {% block content %}
-    <div class="cipher-top">
+    {% if cipher_mode == "tasks" and cipher_tasks %}
+    {# ══════ TASK MODE (Russian / other subjects) ══════ #}
+
+    {% if cipher_key %}
+    <div class="cipher-section-label">Ключ шифра:</div>
+    <div class="cipher-key" style="margin-bottom:14px;">
+        {% for code, letter in cipher_key.items() %}
+        <div class="cipher-pair">
+            <div class="cipher-code">{{ code }}</div>
+            <div class="cipher-arrow">=</div>
+            <div class="cipher-letter">{{ letter }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="cipher-task-layout">
+        <div class="cipher-task-left">
+            <div class="cipher-section-label">{{ instruction }}</div>
+            <div class="cipher-tasks">
+                {% for task in cipher_tasks %}
+                <div class="cipher-task-item">
+                    <span class="cipher-task-num">{{ loop.index }}</span>
+                    <div class="cipher-task-body">
+                        <div class="cipher-task-question">{{ task.question }}</div>
+                        {% if task.options %}
+                        <div class="cipher-task-options">
+                            {% for opt in task.options %}
+                            <span class="cipher-task-option">{{ opt }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="cipher-task-answer">
+                            <span class="cipher-task-answer-label">Ответ:</span>
+                            <div class="cipher-task-answer-box"></div>
+                            <span class="cipher-task-answer-label">→ Буква:</span>
+                            <div class="cipher-task-letter-box"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="cipher-task-right">
+            <div class="cipher-image-wrap">
+                {% if image_url %}
+                <img src="{{ image_url }}" alt="Раскраска">
+                {% else %}
+                <div class="cipher-image-placeholder">Раскраска по теме</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if secret_word %}
+    <div class="cipher-secret">
+        <span class="cipher-secret-label">Секретное слово:</span>
+        <div class="cipher-secret-boxes">
+            {% for ch in secret_word %}
+            <div class="cipher-secret-box"></div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    {# ══════ MATH MODE (expressions grid) ══════ #}
+
+    <div class="cipher-math-top">
         <div class="cipher-key-col">
             <div class="cipher-section-label">Ключ шифра:</div>
-            <div class="cipher-key">
+            <div class="cipher-key" style="flex:1;">
                 {% for code, letter in cipher_key.items() %}
                 <div class="cipher-pair">
                     <div class="cipher-code">{{ code }}</div>
@@ -123,7 +259,7 @@
     </div>
 
     <div class="cipher-decode">
-        <div class="cipher-section-label">Расшифруй послание:</div>
+        <div class="cipher-section-label">{{ instruction }}</div>
         {% for line in encoded_lines %}
         <div class="encoded-line">
             {% for word in line.split('  ') %}
@@ -138,9 +274,10 @@
             {% endfor %}
         </div>
         {% endfor %}
-
-        {% if fun_answer_hint %}
-        <div class="cipher-hint">{{ fun_answer_hint }}</div>
-        {% endif %}
     </div>
+    {% endif %}
+
+    {% if fun_answer_hint %}
+    <div class="cipher-hint">{{ fun_answer_hint }}</div>
+    {% endif %}
 {% endblock %}
