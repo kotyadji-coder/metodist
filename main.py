@@ -19,7 +19,9 @@ from pydantic import BaseModel
 
 import db_logger
 from gemini_client import analyze_worksheet_request, generate_worksheet_tasks, generate_activity
+from gemini_client import get_last_backend as get_text_backend
 from image_generator import generate_image
+from image_generator import get_last_backend as get_image_backend
 from smartbot_client import send_message
 from generators.worksheet import save_worksheet
 from generators.activities.render import save_activity
@@ -146,6 +148,7 @@ def _generate_worksheet_and_send(
         # 1. LLM Step 1: Analyze request
         db_logger.log("INFO", "STEP1_START", "Analyzing request", user_id=user_id, channel_id=channel_id)
         analysis = analyze_worksheet_request(question)
+        db_logger.log("INFO", "AI_BACKEND", f"Текст: {get_text_backend()}", user_id=user_id, channel_id=channel_id)
         db_logger.log(
             "INFO", "STEP1_DONE",
             f"{analysis.get('subject')} · {analysis.get('grade')} кл · {analysis.get('topic')}",
@@ -162,6 +165,9 @@ def _generate_worksheet_and_send(
             tasks_data = tasks_future.result()
             image_bytes = image_future.result()
 
+        db_logger.log("INFO", "AI_BACKEND", f"Текст: {get_text_backend()}", user_id=user_id, channel_id=channel_id)
+        if image_bytes:
+            db_logger.log("INFO", "AI_BACKEND", f"Картинка: {get_image_backend()}", user_id=user_id, channel_id=channel_id)
         db_logger.log("INFO", "CONCURRENT_DONE", "Image + Tasks ready", user_id=user_id, channel_id=channel_id)
 
         # 3. Save HTML (post-processing handled inside save_worksheet)
@@ -203,6 +209,7 @@ def _generate_activity_and_send(
         # 1. Analyze
         db_logger.log("INFO", "ACT_STEP1", f"Analyzing {activity_type}", user_id=user_id, channel_id=channel_id)
         analysis = analyze_worksheet_request(question)
+        db_logger.log("INFO", "AI_BACKEND", f"Текст: {get_text_backend()}", user_id=user_id, channel_id=channel_id)
 
         # 2. Generate activity data (+ image for cipher)
         db_logger.log("INFO", "ACT_STEP2", f"Generating {activity_type}", user_id=user_id, channel_id=channel_id)
@@ -213,9 +220,13 @@ def _generate_activity_and_send(
                 activity_future = pool.submit(generate_activity, activity_type, analysis)
                 activity_data = activity_future.result()
                 image_bytes = image_future.result()
+            db_logger.log("INFO", "AI_BACKEND", f"Текст: {get_text_backend()}", user_id=user_id, channel_id=channel_id)
+            if image_bytes:
+                db_logger.log("INFO", "AI_BACKEND", f"Картинка: {get_image_backend()}", user_id=user_id, channel_id=channel_id)
         else:
             activity_data = generate_activity(activity_type, analysis)
             image_bytes = None
+            db_logger.log("INFO", "AI_BACKEND", f"Текст: {get_text_backend()}", user_id=user_id, channel_id=channel_id)
 
         # 3. Save HTML
         content_id = save_activity(

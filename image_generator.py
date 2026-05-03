@@ -12,6 +12,8 @@ IMAGE_MODEL = "gemini-2.5-flash-image"
 
 logger = logging.getLogger("metodist")
 
+_last_backend = "unknown"
+
 
 def _get_client(backend: str) -> genai.Client:
     if backend == "ai_studio":
@@ -81,6 +83,8 @@ def generate_image(image_prompt: str, aspect_ratio: str = "16:9") -> bytes:
                 for part in candidate.content.parts:
                     if part.inline_data is not None:
                         logger.info(f"Image generated successfully via {tag}")
+                        global _last_backend
+                        _last_backend = f"{backend}/{IMAGE_MODEL}"
                         return part.inline_data.data
 
                 raise ValueError("No image data in response parts")
@@ -102,3 +106,7 @@ def generate_image(image_prompt: str, aspect_ratio: str = "16:9") -> bytes:
                     break
 
     raise last_error or RuntimeError("All image backends failed")
+
+
+def get_last_backend() -> str:
+    return _last_backend

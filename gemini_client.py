@@ -22,6 +22,8 @@ VERTEX_REGION = "global"
 
 logger = logging.getLogger("metodist")
 
+_last_backend = "unknown"
+
 SAFETY_SETTINGS = [
     types.SafetySetting(
         category="HARM_CATEGORY_HARASSMENT",
@@ -87,6 +89,8 @@ def _call_with_fallback(contents, config=None):
                         config=config,
                     )
                     logger.info(f"Success from {tag}")
+                    global _last_backend
+                    _last_backend = tag
                     return response
                 except Exception as e:
                     error_str = str(e)
@@ -107,6 +111,10 @@ def _call_with_fallback(contents, config=None):
             continue
 
     raise last_error or RuntimeError("All backends failed")
+
+
+def get_last_backend() -> str:
+    return _last_backend
 
 
 def _call_model_with_retry(prompt: str):
