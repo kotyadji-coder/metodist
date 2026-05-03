@@ -4,9 +4,8 @@ import os
 import re
 import time
 
-import vertexai
-from google.api_core.exceptions import ResourceExhausted
-from vertexai.generative_models import GenerationConfig, GenerativeModel, HarmBlockThreshold, HarmCategory, SafetySetting
+from google import genai
+from google.genai import types
 
 from prompts.analyze import ANALYZE_PROMPT
 from prompts.worksheet_tasks import WORKSHEET_TASKS_PROMPT
@@ -17,73 +16,106 @@ from models.activities.all import (
     CipherActivity, CafeActivity, ShopActivity, MazeActivity,
 )
 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
-REGION = "global"
-MODEL_NAME = "gemini-3.1-pro-preview"
-FALLBACK_MODEL_NAME = "gemini-2.5-pro"
+VERTEX_REGION = "global"
 
 logger = logging.getLogger("metodist")
 
-CHILD_SAFETY_SETTINGS = [
-    SafetySetting(
-        category=HarmCategory.HARM_CATEGORY_HARASSMENT,
-        threshold=HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+SAFETY_SETTINGS = [
+    types.SafetySetting(
+        category="HARM_CATEGORY_HARASSMENT",
+        threshold="BLOCK_LOW_AND_ABOVE",
     ),
-    SafetySetting(
-        category=HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-        threshold=HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+    types.SafetySetting(
+        category="HARM_CATEGORY_HATE_SPEECH",
+        threshold="BLOCK_LOW_AND_ABOVE",
     ),
-    SafetySetting(
-        category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-        threshold=HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+    types.SafetySetting(
+        category="HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        threshold="BLOCK_LOW_AND_ABOVE",
     ),
-    SafetySetting(
-        category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-        threshold=HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+    types.SafetySetting(
+        category="HARM_CATEGORY_DANGEROUS_CONTENT",
+        threshold="BLOCK_LOW_AND_ABOVE",
     ),
 ]
 
-MAX_RETRIES = 3
+FALLBACK_CHAIN = [
+    ("ai_studio", "gemini-2.5-pro"),
+    ("ai_studio", "gemini-2.5-flash"),
+    ("vertex", "gemini-2.5-pro"),
+]
 
 
-def _get_model(model_name: str = MODEL_NAME) -> GenerativeModel:
+def _get_ai_studio_client() -> genai.Client:
+    return genai.Client(api_key=GEMINI_API_KEY)
+
+
+def _get_vertex_client() -> genai.Client:
     credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     if credentials_path:
         from google.oauth2 import service_account
-        credentials = service_account.Credentials.from_service_account_file(credentials_path)
-        vertexai.init(project=PROJECT_ID, location=REGION, credentials=credentials)
-    else:
-        vertexai.init(project=PROJECT_ID, location=REGION)
-    return GenerativeModel(model_name)
+        credentials = service_account.Credentials.from_service_account_file(
+            credentials_path,
+            scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        )
+        return genai.Client(vertexai=True, project=PROJECT_ID, location=VERTEX_REGION, credentials=credentials)
+    return genai.Client(vertexai=True, project=PROJECT_ID, location=VERTEX_REGION)
 
 
-def _call_model_with_retry(prompt: str, model_name: str = MODEL_NAME):
-    """Call Gemini with retry on 429, fallback to stable model."""
-    model = _get_model(model_name)
-    gen_config = GenerationConfig(response_mime_type="application/json")
-
-    for attempt in range(MAX_RETRIES + 1):
+def _call_with_fallback(contents, config=None):
+    """Try AI Studio gemini-2.5-pro -> AI Studio gemini-2.5-flash -> Vertex gemini-2.5-pro."""
+    last_error = None
+    for backend, model_name in FALLBACK_CHAIN:
         try:
-            return model.generate_content(
-                prompt,
-                generation_config=gen_config,
-                safety_settings=CHILD_SAFETY_SETTINGS,
-            )
-        except ResourceExhausted:
-            if attempt == MAX_RETRIES:
-                break
-            wait = 2 ** attempt * 5  # 5s, 10s, 20s
-            logger.warning("Gemini 429 rate limit, retry %d/%d after %ds", attempt + 1, MAX_RETRIES, wait)
-            time.sleep(wait)
+            if backend == "ai_studio":
+                if not GEMINI_API_KEY:
+                    logger.info(f"Skipping AI Studio ({model_name}): no API key")
+                    continue
+                client = _get_ai_studio_client()
+            else:
+                client = _get_vertex_client()
 
-    # All retries exhausted — fallback
-    logger.warning("Retries exhausted for %s, falling back to %s", model_name, FALLBACK_MODEL_NAME)
-    fallback = _get_model(FALLBACK_MODEL_NAME)
-    return fallback.generate_content(
-        prompt,
-        generation_config=gen_config,
-        safety_settings=CHILD_SAFETY_SETTINGS,
+            tag = f"{backend}/{model_name}"
+            for attempt in range(4):
+                try:
+                    logger.info(f"Calling {tag} (attempt {attempt + 1})")
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=contents,
+                        config=config,
+                    )
+                    logger.info(f"Success from {tag}")
+                    return response
+                except Exception as e:
+                    error_str = str(e)
+                    if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str.upper():
+                        if attempt < 3:
+                            wait = 2 ** attempt * 5
+                            logger.warning(f"{tag} rate limit, retry {attempt + 1}/3 after {wait}s")
+                            time.sleep(wait)
+                            continue
+                        logger.warning(f"{tag} rate limit exhausted, moving to next backend")
+                        last_error = e
+                        break
+                    else:
+                        raise
+        except Exception as e:
+            logger.warning(f"Failed {backend}/{model_name}: {e}")
+            last_error = e
+            continue
+
+    raise last_error or RuntimeError("All backends failed")
+
+
+def _call_model_with_retry(prompt: str):
+    """Call Gemini with fallback chain, JSON response mode."""
+    config = types.GenerateContentConfig(
+        response_mime_type="application/json",
+        safety_settings=SAFETY_SETTINGS,
     )
+    return _call_with_fallback(prompt, config=config)
 
 
 def _extract_json(raw: str) -> dict:
