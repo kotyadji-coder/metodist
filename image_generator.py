@@ -7,7 +7,7 @@ from google.genai import types
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
-IMAGE_BACKENDS = ["ai_studio", "vertex"]
+IMAGE_BACKENDS = ["vertex"]  # AI Studio free tier has 0 quota for image generation
 IMAGE_MODEL = "gemini-2.5-flash-image"
 
 logger = logging.getLogger("metodist")
