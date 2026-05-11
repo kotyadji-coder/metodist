@@ -167,12 +167,105 @@ def _strip_personal_data(analysis: dict) -> dict:
     return safe
 
 
+def _build_custom_words_block(analysis: dict) -> str:
+    """Build an explicit prompt block that forces LLM to use custom_words."""
+    words = analysis.get("custom_words")
+    if not words:
+        return ""
+    words_str = ", ".join(words)
+    return f"""
+╔══════════════════════════════════════════════════════════════╗
+║  ОБЯЗАТЕЛЬНАЯ ЛЕКСИКА — ПРИОРИТЕТ №1                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+Учитель задал КОНКРЕТНЫЙ список слов: [{words_str}]
+
+ВСЕ задания 2, 3, 4 ОБЯЗАНЫ использовать ТОЛЬКО слова из этого списка.
+НЕ ПРИДУМЫВАЙ свои слова. НЕ ЗАМЕНЯЙ слова из списка.
+
+Вот как использовать эти слова в каждом типе задания:
+- matching: left_column = слова из списка, right_column = их переводы/определения
+- fill_blanks: пропуски = слова из списка, предложения содержат эти слова
+- sorting_table: word_bank = слова из списка
+- odd_one_out: items = 3 слова из списка + 1 лишнее (НЕ из списка)
+- anagram: scrambled = одно из слов списка с перемешанными буквами
+- word_search: words = слова из списка (3-6 букв, без Ё и Й)
+- letter_unscramble: scrambled_words = слова из списка с перемешанными буквами
+- sentence_build: предложения используют слова из списка
+- crossword_mini: words = слова из списка, clues = подсказки к ним
+- coloring: prompt_text использует слова из списка
+
+ПРОВЕРЬ СЕБЯ: каждое задание содержит слова [{words_str}]? Если нет — переделай.
+"""
+
+
+def _extract_words_from_tasks(tasks_data: dict) -> set[str]:
+    """Extract all words/strings used in generated tasks for validation."""
+    text_parts = []
+    for task in tasks_data.get("tasks", []):
+        for key, val in task.items():
+            if key in ("type", "instruction", "line_count", "grid_size", "answer_length", "chain_length", "target_sum"):
+                continue
+            if isinstance(val, str):
+                text_parts.append(val)
+            elif isinstance(val, list):
+                for item in val:
+                    if isinstance(item, str):
+                        text_parts.append(item)
+                    elif isinstance(item, list):
+                        text_parts.extend(str(x) for x in item)
+    full_text = " ".join(text_parts).lower()
+    return set(full_text.split())
+
+
+def _check_custom_words_used(analysis: dict, tasks_data: dict) -> list[str]:
+    """Return list of custom_words NOT found in the generated tasks."""
+    custom_words = analysis.get("custom_words")
+    if not custom_words:
+        return []
+    full_text = _extract_words_from_tasks(tasks_data)
+    # Also check as substring (for compound forms, fill_blanks text, etc.)
+    all_text = " ".join(
+        str(v) for task in tasks_data.get("tasks", [])
+        for v in task.values() if isinstance(v, (str, list))
+    ).lower()
+    missing = []
+    for word in custom_words:
+        w = word.lower().strip()
+        if w not in full_text and w not in all_text:
+            missing.append(word)
+    return missing
+
+
 def generate_worksheet_tasks(analysis: dict) -> dict:
-    """Step 2: Generate 4 tasks based on analysis."""
+    """Step 2: Generate 4 tasks based on analysis. Validates custom_words usage."""
+    custom_words_block = _build_custom_words_block(analysis)
     prompt = WORKSHEET_TASKS_PROMPT.format(
         analysis_json=json.dumps(_strip_personal_data(analysis), ensure_ascii=False),
+        custom_words_block=custom_words_block,
     )
-    return _call_and_validate(prompt, model_class=WorksheetTasks)
+    data = _call_and_validate(prompt, model_class=WorksheetTasks)
+
+    # Validate custom_words usage — retry once if too many missing
+    custom_words = analysis.get("custom_words")
+    if custom_words:
+        missing = _check_custom_words_used(analysis, data)
+        if len(missing) > len(custom_words) * 0.4:
+            logger.warning("Custom words validation failed. Missing %d/%d: %s. Retrying.",
+                           len(missing), len(custom_words), missing)
+            words_str = ", ".join(custom_words)
+            retry_prompt = (
+                prompt
+                + f"\n\nОШИБКА: ты НЕ использовал слова учителя! Пропущены: {', '.join(missing)}."
+                + f"\nВСЕ задания ОБЯЗАНЫ содержать слова из списка: [{words_str}]."
+                + "\nПеределай JSON. Каждое задание должно включать слова из списка."
+            )
+            data = _call_and_validate(retry_prompt, model_class=WorksheetTasks)
+            missing2 = _check_custom_words_used(analysis, data)
+            if missing2:
+                logger.warning("After retry still missing %d words: %s", len(missing2), missing2)
+
+    return data
 
 
 ACTIVITY_MODEL_MAP = {

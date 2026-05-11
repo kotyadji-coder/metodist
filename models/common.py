@@ -23,3 +23,5 @@ class WorksheetAnalysis(BaseModel):
     child_name: str | None = Field(default=None, description="Child's name if provided")
     title: str = Field(description="Creative worksheet title (3-6 words, references the universe)")
     coloring_prompt: str = Field(description="English prompt for B&W coloring page image generation")
+    textbook: str | None = Field(default=None, description="Textbook name if mentioned (e.g. Family and Friends 2, Spotlight 3)")
+    custom_words: list[str] | None = Field(default=None, description="Specific vocabulary words provided by the teacher")

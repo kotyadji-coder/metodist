@@ -7,7 +7,7 @@ ANALYZE_PROMPT = """РОЛЬ:
 Проанализируй запрос пользователя и верни строгий JSON.
 
 ВХОД:
-Свободный текст. Может содержать: имя ребёнка, класс, одну или НЕСКОЛЬКО тем, любимый персонаж/вселенную.
+Свободный текст. Может содержать: имя ребёнка, класс, одну или НЕСКОЛЬКО тем, любимый персонаж/вселенную, название учебника, конкретные слова для заданий.
 
 ИНСТРУКЦИЯ:
 
@@ -27,7 +27,15 @@ ANALYZE_PROMPT = """РОЛЬ:
 
 6. НАЗВАНИЕ: креативное, 3-6 слов, с отсылкой к вселенной, понятное ребёнку.
 
-7. COLORING_PROMPT: одно предложение на АНГЛИЙСКОМ для генерации раскраски для детей 6-8 лет:
+7. УЧЕБНИК: если пользователь упоминает учебник (Family and Friends, Spotlight, Starlight, Rainbow English, Enjoy English, Forward и т.д.) — запиши его название. Иначе null.
+
+8. КОНКРЕТНЫЕ СЛОВА: если пользователь перечислил конкретные слова или фразы, которые нужно использовать в заданиях — собери их в массив. Это могут быть:
+   - Лексика через запятую: "apple, pear, grapes, tomato"
+   - Слова в скобках: "(груша, виноград, орехи)"
+   - Слова после "слова:" или "лексика:"
+   Если слов нет — null.
+
+9. COLORING_PROMPT: одно предложение на АНГЛИЙСКОМ для генерации раскраски для детей 6-8 лет:
    "Coloring page for young children aged 6, black and white, VERY thick bold outlines, MINIMAL details, LARGE simple shapes only, no small elements, no shading, no gradients, no color, no text, no letters, no numbers, featuring [1 крупный персонаж вселенной]"
    ПРАВИЛА для картинки:
    - Рисуй ОДНОГО крупного персонажа вселенной на весь лист
@@ -60,7 +68,9 @@ JSON-СТРУКТУРА:
   "theme": "<вселенная>",
   "child_name": "<имя или null>",
   "title": "<название>",
-  "coloring_prompt": "<English prompt>"
+  "coloring_prompt": "<English prompt>",
+  "textbook": "<название учебника или null>",
+  "custom_words": ["слово1", "слово2", "..."] или null
 }}
 
 ПРИМЕРЫ:
@@ -77,7 +87,9 @@ JSON-СТРУКТУРА:
   "theme": "Minecraft",
   "child_name": "Маша",
   "title": "Приключения Стива в мире чисел",
-  "coloring_prompt": "Black and white coloring book page for kids, clean outlines, no shading, no color fills, featuring a blocky character in a pixelated classroom solving math on a chalkboard"
+  "coloring_prompt": "Black and white coloring book page for kids, clean outlines, no shading, no color fills, featuring a blocky character in a pixelated classroom solving math on a chalkboard",
+  "textbook": null,
+  "custom_words": null
 }}
 
 Запрос: "3 класс, части речи, безударные гласные, состав слова, Гарри Поттер"
@@ -93,7 +105,41 @@ JSON-СТРУКТУРА:
   "theme": "Гарри Поттер",
   "child_name": null,
   "title": "Заклинания русского языка",
-  "coloring_prompt": "Black and white coloring book page for kids, clean outlines, no shading, no color fills, featuring a young wizard with round glasses and a magic wand writing words on a floating chalkboard"
+  "coloring_prompt": "Black and white coloring book page for kids, clean outlines, no shading, no color fills, featuring a young wizard with round glasses and a magic wand writing words on a floating chalkboard",
+  "textbook": null,
+  "custom_words": null
+}}
+
+Запрос: "Мира, 3 класс, Наруто, Английский язык, лексика Food из учебника Family and friends 2"
+Ответ:
+{{
+  "subject": "Английский язык",
+  "grade": 3,
+  "topics": [
+    {{"subject": "Английский язык", "topic": "Лексика по теме Food"}}
+  ],
+  "theme": "Наруто",
+  "child_name": "Мира",
+  "title": "Кулинарное задание ниндзя",
+  "coloring_prompt": "Coloring page for young children aged 6, black and white, VERY thick bold outlines, MINIMAL details, LARGE simple shapes only, no small elements, no background, featuring one large young ninja character holding a bowl of ramen",
+  "textbook": "Family and Friends 2",
+  "custom_words": null
+}}
+
+Запрос: "2 класс, английский, pear, grapes, tomato, nuts, chicken, rice, juice, cheese, Minecraft"
+Ответ:
+{{
+  "subject": "Английский язык",
+  "grade": 2,
+  "topics": [
+    {{"subject": "Английский язык", "topic": "Лексика по теме Food"}}
+  ],
+  "theme": "Minecraft",
+  "child_name": null,
+  "title": "Minecraft Food Challenge",
+  "coloring_prompt": "Coloring page for young children aged 6, black and white, VERY thick bold outlines, MINIMAL details, LARGE simple shapes only, no small elements, no background, featuring one large blocky character holding food items",
+  "textbook": null,
+  "custom_words": ["pear", "grapes", "tomato", "nuts", "chicken", "rice", "juice", "cheese"]
 }}
 
 ЗАПРОС ПОЛЬЗОВАТЕЛЯ:

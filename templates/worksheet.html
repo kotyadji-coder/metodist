@@ -204,7 +204,7 @@
         /* ── COLORING TASK ── */
         .coloring-task-wrap { position: relative; }
         .coloring-task-img {
-            position: absolute; right: 0; top: -36px;
+            position: absolute; right: 0; top: 0;
             width: 220px; height: 220px; object-fit: cover;
             border-radius: 10px; border: 2px solid #e5e7eb;
             background: #fafafa;
@@ -505,9 +505,6 @@
             </span>
         </div>
 
-        <p class="task-instruction">{{ task.instruction }}</p>
-
-        {# ── COLORING ── #}
         {% if task.type == 'coloring' %}
         <div class="coloring-task-wrap">
             {% if coloring_image_url %}
@@ -516,6 +513,7 @@
             <div class="coloring-task-img" style="display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:12pt;text-align:center;">Раскраска</div>
             {% endif %}
             <div class="coloring-task-right">
+                <p class="task-instruction">{{ task.instruction }}</p>
                 <p class="lines-prompt">{{ task.prompt_text }}</p>
                 {% for _ in range(task.line_count|default(3)) %}
                 <div class="writing-line"></div>
@@ -523,8 +521,12 @@
             </div>
         </div>
 
+        {% else %}
+        <p class="task-instruction">{{ task.instruction }}</p>
+        {% endif %}
+
         {# ── MATCHING ── #}
-        {% elif task.type == 'matching' %}
+        {% if task.type == 'matching' %}
         <div class="matching-container">
             <div class="matching-col">
                 {% for item in task.left_column %}
