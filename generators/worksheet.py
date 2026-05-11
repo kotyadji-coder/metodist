@@ -1,6 +1,7 @@
 """Worksheet HTML renderer: builds final HTML from analysis + tasks data."""
 
 import json
+import random
 import uuid
 from pathlib import Path
 
@@ -16,10 +17,25 @@ _jinja_env = Environment(loader=FileSystemLoader(str(_TEMPLATES_DIR)))
 _jinja_env.filters["tojson"] = json.dumps
 
 
+def _shuffle_until_different(items: list) -> list:
+    """Shuffle a list, ensuring result differs from original (if len > 1)."""
+    if len(items) <= 1:
+        return items
+    original = list(items)
+    shuffled = list(items)
+    for _ in range(20):
+        random.shuffle(shuffled)
+        if shuffled != original:
+            return shuffled
+    return shuffled
+
+
 def _postprocess_tasks(tasks: list[dict]) -> list[dict]:
-    """Run code generators for tasks that need them."""
+    """Run code generators and fix ordering for tasks that need them."""
     for task in tasks:
         t = task.get("type")
+
+        # Build grids
         if t == "word_search" and "grid" not in task:
             task["grid"] = build_word_search_grid(
                 task.get("words", []),
@@ -30,6 +46,17 @@ def _postprocess_tasks(tasks: list[dict]) -> list[dict]:
                 task.get("words", []),
                 task.get("clues", []),
             )
+
+        # Shuffle right_column in matching so answers aren't obvious
+        elif t == "matching" and "right_column" in task:
+            task["right_column"] = _shuffle_until_different(task["right_column"])
+
+        # Shuffle words inside each sentence for sentence_order / sentence_build
+        elif t in ("sentence_order", "sentence_build") and "scrambled_sentences" in task:
+            task["scrambled_sentences"] = [
+                _shuffle_until_different(sent) for sent in task["scrambled_sentences"]
+            ]
+
     return tasks
 
 
