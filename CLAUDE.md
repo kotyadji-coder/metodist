@@ -129,35 +129,11 @@ python test_render.py
 
 **Rule: when completing a task, Claude MUST check it off `[x]` in this file.**
 
-### Phase 1: Refactor + Stabilize current Worksheet (Type 1)
-- [x] Pydantic models (worksheet_models.py)
-- [x] LLM prompts — Step 1 + Step 2 (worksheet_prompts.py)
-- [x] Gemini client — analyze + generate tasks
-- [x] Image generator with aspect_ratio
-- [x] Worksheet generator — word_search grid + save_worksheet
-- [x] Jinja2 template — all 11 mechanics, 2-column grid, 1 page A4
-- [x] FastAPI endpoint + concurrent pipeline (main.py)
-- [x] SmartBot client, db_logger, .env.example, .gitignore
-- [x] Add Pydantic validation of LLM responses + retry on parse error
-- [x] Refactor into `prompts/`, `models/`, `generators/` directories
-- [x] Improve task library: 24 interactive mechanics across 4 subjects
-- [x] Update Jinja2 template with all new mechanics HTML/CSS
-- [x] Update test_render.py — 8 test worksheets covering all mechanics
-- [x] Test with real Gemini API
-- [x] Verify A4 printing with real coloring image
-
-### Phase 2: Full-Page Activities (Type 2)
-- [x] `cipher` — model, prompt, template (decode themed messages)
-- [x] `cafe` — model, prompt, template (themed menu + math tasks)
-- [x] `shop` — model, prompt, template (themed shop + math tasks)
-- [x] `color_by_value` — model, prompt, template (solve → color zones)
-- [x] `maze` — model, prompt, template (choose correct answer at junctions)
-- [x] `number_chain` — model, prompt, template (visual chains with patterns)
-- [x] All 6 tested with real Gemini API
+### TODO
 - [ ] Endpoint: `POST /generate-activity` with activity type parameter
 - [ ] Polish templates after review
 
-### Phase 3: Deploy
+### Deploy
 - [ ] Initialize git repository
 - [ ] Create GitHub repo (kotyadji-coder)
 - [ ] First deploy to VPS (port 8002, /opt/metodist)
@@ -174,23 +150,6 @@ python test_render.py
 - [ ] Prompt iteration after real user feedback
 
 ---
-
-## Changelog
-
-All significant changes are logged here (newest first).
-
-### 2026-04-27
-- **Phase 1 complete**: refactored into prompts/, models/, generators/ structure
-- Added 24 task mechanics (was 11): math(10), russian(10), english(9), science(9)
-- New mechanics: number_pyramid, magic_square, comparison_chain, expression_builder, number_sequence, syllable_builder, sentence_order, word_chain, missing_vowels, letter_unscramble, sentence_build, crossword_mini, sequence_order, true_false_fix, cause_effect, riddle_boxes
-- Removed empty_boxes, lines, big_canvas (not real tasks, just blank space)
-- Added Pydantic validation + retry (MAX_RETRIES=2) in gemini_client.py
-- Multi-topic support: analysis.topics is now an array (1-4 topics per request)
-- Crossword grid builder in generators/grids.py
-- 8 test worksheets: math(2), russian(2), english(2), science(2)
-- Expanded CLAUDE.md with full plan: Type 1 (Worksheet) + Type 2 (Full-Page Activities)
-- Rewrote CLAUDE.md to English, added changelog section
-
 
 ## LLM Dashboard Integration
 
